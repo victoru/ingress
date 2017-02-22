@@ -14,7 +14,7 @@ ifndef COMMIT
   COMMIT := git-$(shell git rev-parse --short HEAD)
 endif
 
-PKG=k8s.io/ingress/controllers/nginx
+PKG=.
 
 build: clean
 	CGO_ENABLED=0 GOOS=${GOOS} go build -a -installsuffix cgo \
