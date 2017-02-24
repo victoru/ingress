@@ -426,26 +426,44 @@ func (ic *GenericController) sync(key interface{}) error {
 	return nil
 }
 
+func (ic *GenericController) getStreamBackends(configmapName string, proto api.Protocol) []*ingress.Backend {
+	var backends []*ingress.Backend
+	svcs, endpsL := ic.getStreamLocationsAndEndpoints(configmapName, proto)
+	for i, svc := range svcs {
+		backends = append(backends, &ingress.Backend{
+			Name:      svc.Backend,
+			Endpoints: endpsL[i],
+		})
+	}
+
+	return backends
+}
+
 func (ic *GenericController) getStreamServices(configmapName string, proto api.Protocol) []*ingress.Location {
+	svcs, _ := ic.getStreamLocationsAndEndpoints(configmapName, proto)
+	return svcs
+}
+
+func (ic *GenericController) getStreamLocationsAndEndpoints(configmapName string, proto api.Protocol) ([]*ingress.Location, [][]ingress.Endpoint) {
 	glog.V(3).Infof("obtaining information about stream services of type %v located in configmap %v", proto, configmapName)
 	if configmapName == "" {
-		// no configmap configured
-		return []*ingress.Location{}
+		return nil, nil
 	}
 
 	ns, name, err := k8s.ParseNameNS(configmapName)
 	if err != nil {
 		glog.Errorf("unexpected error reading configmap %v: %v", name, err)
-		return []*ingress.Location{}
+		return nil, nil
 	}
 
 	configmap, err := ic.getConfigMap(ns, name)
 	if err != nil {
 		glog.Errorf("unexpected error reading configmap %v: %v", name, err)
-		return []*ingress.Location{}
+		return nil, nil
 	}
 
 	var svcs []*ingress.Location
+	var endpsL [][]ingress.Endpoint
 	// k -> port to expose
 	// v -> <namespace>/<service name>:<port from service to be used>
 	for k, v := range configmap.Data {
@@ -521,9 +539,9 @@ func (ic *GenericController) getStreamServices(configmapName string, proto api.P
 			Path:    k,
 			Backend: fmt.Sprintf("%v-%v-%v", svcNs, svcName, svcPort),
 		})
+		endpsL = append(endpsL, endps)
 	}
-
-	return svcs
+	return svcs, endpsL
 }
 
 // getDefaultUpstream returns an upstream associated with the
@@ -646,6 +664,17 @@ func (ic *GenericController) getBackendServers() ([]*ingress.Backend, []*ingress
 					server.Locations = append(server.Locations, loc)
 				}
 			}
+		}
+	}
+
+	for _, tcpBackend := range ic.getStreamBackends(ic.cfg.TCPConfigMapName, api.ProtocolTCP) {
+		if _, ok := upstreams[tcpBackend.Name]; !ok {
+			upstreams[tcpBackend.Name] = tcpBackend
+		}
+	}
+	for _, udpBackend := range ic.getStreamBackends(ic.cfg.UDPConfigMapName, api.ProtocolUDP) {
+		if _, ok := upstreams[udpBackend.Name]; !ok {
+			upstreams[udpBackend.Name] = udpBackend
 		}
 	}
 
