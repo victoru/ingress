@@ -244,7 +244,7 @@ func (le *LeaderElector) tryAcquireOrRenew() bool {
 	}
 	if le.observedTime.Add(le.config.LeaseDuration).After(now.Time) &&
 		oldLeaderElectionRecord.HolderIdentity != le.config.Lock.Identity() {
-		glog.Infof("lock is held by %v and has not yet expired", oldLeaderElectionRecord.HolderIdentity)
+		glog.V(1).Infof("lock is held by %v and has not yet expired", oldLeaderElectionRecord.HolderIdentity)
 		return false
 	}
 

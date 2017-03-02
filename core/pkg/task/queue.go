@@ -84,7 +84,9 @@ func (t *Queue) worker() {
 		}
 		glog.V(3).Infof("syncing %v", key)
 		if err := t.sync(key); err != nil {
-			glog.Warningf("requeuing %v, err %v", key, err)
+			if glog.V(1) {
+				glog.Warningf("requeuing %v, err %v", key, err)
+			}
 			t.queue.AddRateLimited(key)
 		} else {
 			t.queue.Forget(key)
