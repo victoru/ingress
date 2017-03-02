@@ -93,7 +93,7 @@ func NewIngressController(backend ingress.Controller) *GenericController {
 
 	flag.Set("logtostderr", "true")
 
-	glog.Info(backend.Info())
+	glog.V(1).Info(backend.Info())
 
 	if *ingressClass != "" {
 		glog.Infof("Watching for ingress class: %s", *ingressClass)
@@ -112,7 +112,7 @@ func NewIngressController(backend ingress.Controller) *GenericController {
 	if err != nil {
 		glog.Fatalf("no service with name %v found: %v", *defaultSvc, err)
 	}
-	glog.Infof("validated %v as the default backend", *defaultSvc)
+	glog.V(1).Infof("validated %v as the default backend", *defaultSvc)
 
 	if *publishSvc != "" {
 		svc, err := k8s.IsValidService(kubeClient, *publishSvc)
@@ -125,7 +125,7 @@ func NewIngressController(backend ingress.Controller) *GenericController {
 			glog.Fatalf("service %s does not (yet) have ingress points", *publishSvc)
 		}
 
-		glog.Infof("service %v validated as source of Ingress status", *publishSvc)
+		glog.V(1).Infof("service %v validated as source of Ingress status", *publishSvc)
 	}
 
 	for _, configMap := range []string{*configMap, *tcpConfigMapName, *udpConfigMapName} {
@@ -242,7 +242,7 @@ func createApiserverClient(apiserverHost string, kubeConfig string) (*client.Cli
 	cfg.Burst = defaultBurst
 	cfg.ContentType = "application/vnd.kubernetes.protobuf"
 
-	glog.Infof("Creating API server client for %s", cfg.Host)
+	glog.V(1).Infof("Creating API server client for %s", cfg.Host)
 
 	client, err := client.NewForConfig(cfg)
 
