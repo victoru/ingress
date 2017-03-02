@@ -140,7 +140,7 @@ type Configuration struct {
 func newIngressController(config *Configuration) *GenericController {
 
 	eventBroadcaster := record.NewBroadcaster()
-	eventBroadcaster.StartLogging(glog.Infof)
+	eventBroadcaster.StartLogging(glog.V(1).Infof)
 	eventBroadcaster.StartRecordingToSink(&unversionedcore.EventSinkImpl{
 		Interface: config.Client.Core().Events(config.Namespace),
 	})
@@ -396,7 +396,7 @@ func (ic *GenericController) syncIngress(key interface{}) error {
 		return err
 	}
 	if reloaded {
-		glog.Infof("ingress backend successfully reloaded...")
+		glog.V(1).Infof("ingress backend successfully reloaded...")
 		incReloadCount()
 	}
 	return nil

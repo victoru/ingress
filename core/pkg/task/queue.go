@@ -91,7 +91,9 @@ func (t *Queue) worker() {
 			return
 		}
 
-		glog.Warningf("requeuing %v, err %v", key, err)
+		if glog.V(1) {
+			glog.Warningf("requeuing %v, err %v", key, err)
+		}
 		t.queue.AddRateLimited(key)
 	}
 }
