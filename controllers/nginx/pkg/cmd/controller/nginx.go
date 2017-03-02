@@ -98,7 +98,7 @@ Error loading new template : %v
 
 		n.t.Close()
 		n.t = template
-		glog.Info("new NGINX template loaded")
+		glog.V(1).Info("new NGINX template loaded")
 	}
 
 	ngxTpl, err := ngx_template.NewTemplate(tmplPath, onChange)
@@ -138,8 +138,8 @@ type NGINXController struct {
 }
 
 // Start start a new NGINX master process running in foreground.
-func (n *NGINXController) Start() {
-	glog.Info("starting NGINX process...")
+func (n NGINXController) Start() {
+	glog.V(1).Info("starting NGINX process...")
 
 	done := make(chan error, 1)
 	cmd := exec.Command(n.binary, "-c", cfgPath)
